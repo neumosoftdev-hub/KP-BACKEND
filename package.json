@@ -1,0 +1,56 @@
+{
+  "name": "kbackend",
+  "version": "1.0.0",
+  "description": "Production backend for a React Native app (airtime, data, bills, payments).",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "start": "node index.js",
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write .",
+    "test": "jest --runInBand"
+  },
+  "dependencies": {
+    "@getbrevo/brevo": "^3.0.1",
+    "@prisma/client": "^6.17.0",
+    "axios": "^1.12.2",
+    "bcryptjs": "^3.0.2",
+    "bullmq": "^5.61.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.1.0",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.8.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.0",
+    "morgan": "^1.10.1",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^7.0.9",
+    "pino": "^10.0.0",
+    "sib-api-v3-sdk": "^8.5.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "eslint": "^9.37.0",
+    "jest": "^30.2.0",
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
+    "supertest": "^7.1.4"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "keywords": [
+    "nodejs",
+    "express",
+    "backend",
+    "production",
+    "react-native",
+    "api",
+    "payments"
+  ],
+  "author": "Abdulrahman Saidu",
+  "license": "MIT"
+}
