@@ -22,6 +22,7 @@ import cableRoutes from "./routes/cableRoutes.js";
 import cablePlanRoutes from "./routes/cablePlanRoutes.js";
 import CablePlan from "./models/CablePlan.js";
 import electricityRoutes from "./routes/electricityRoutes.js";
+import transactionRoutes from "./routes/transactionRoutes.js";
 
 // 🧩 Load environment variables
 dotenv.config();
@@ -103,7 +104,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// 🧭 API Routes
+// API Routes
 app.use("/api", router);
 app.use("/api/wallet/webhook", aspfiyWebhookRoutes);
 app.use("/api/airtime", airtimeRoutes);
@@ -113,6 +114,8 @@ app.use("/api/data", dataPurchaseRoutes);
 app.use("/api/cable", cableRoutes);
 app.use("/api/cable-plans", cablePlanRoutes);
 app.use("/api/electricity", electricityRoutes);
+app.use("/api/transactions", transactionRoutes);
+
 
 // 🧯 Handle undefined routes
 app.use((req, res) => {

@@ -3,20 +3,35 @@ import electricityService from "../services/electricityService.js";
 import Transaction from "../models/Transaction.js";
 import Wallet from "../models/Wallet.js";
 
-// 🔹 Generate unique 17-character reference (e.g., ELEC9832730012)
+/* -------------------------------------------------------------------------- */
+/* 🔹 Generate unique 17-character reference (e.g., ELEC9832730012)           */
+/* -------------------------------------------------------------------------- */
 function generateReference(prefix = "ELEC") {
   const rand = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
   const shortTime = Date.now().toString().slice(-6);
   return `${prefix}${shortTime}${rand}`.slice(0, 17);
 }
 
-// 🔹 Environment mode
+/* -------------------------------------------------------------------------- */
+/* 🔹 Environment mode                                                        */
+/* -------------------------------------------------------------------------- */
 const MODE = process.env.EPINS_MODE?.toLowerCase() || "live";
 const isSandbox = MODE === "sandbox";
 
-/**
- * ✅ Validate Electricity Meter Number
- */
+/* -------------------------------------------------------------------------- */
+/* 🔹 Unified helper to check provider success                                */
+/* -------------------------------------------------------------------------- */
+const isProviderSuccess = (result) => {
+  // normalize number code if string
+  const code = Number(result?.code);
+  const status = result?.status?.toString()?.toLowerCase();
+
+  return [101, 119].includes(code) || status === "success";
+};
+
+/* -------------------------------------------------------------------------- */
+/* ✅ Validate Electricity Meter Number                                       */
+/* -------------------------------------------------------------------------- */
 export const validateMeter = async (req, res) => {
   try {
     const { serviceId, billerNumber, vcode } = req.body;
@@ -34,32 +49,39 @@ export const validateMeter = async (req, res) => {
       vcode,
     });
 
-    if (result?.code === 119 || result?.status === "success") {
+    console.log("🔍 validateMeter response:", result);
+
+    // ✅ fix: treat code 101 or 119 as success even if no "status"
+    if (isProviderSuccess(result)) {
       return res.status(200).json({
         success: true,
         message: "Meter validated successfully",
-        data: result.description || result.data,
+        data: result?.description || result?.data || result,
       });
     }
 
+    // ❌ Fallback failed case
     return res.status(400).json({
       success: false,
-      message: result?.message || "Meter validation failed",
-      details: result?.description || result?.data || null,
+      message:
+        result?.message ||
+        result?.responseMessage ||
+        "Meter validation failed",
+      details: result?.description || result?.data || result || null,
     });
   } catch (err) {
     console.error("❌ validateMeter error:", err);
     return res.status(500).json({
       success: false,
-      message: "Validation failed",
+      message: "Validation failed due to server error",
       details: err.message,
     });
   }
 };
 
-/**
- * ⚡ Purchase Electricity Token
- */
+/* -------------------------------------------------------------------------- */
+/* ⚡ Purchase Electricity Token                                              */
+/* -------------------------------------------------------------------------- */
 export const purchaseElectricity = async (req, res) => {
   try {
     const { userId, service, accountno, vcode, amount } = req.body;
@@ -141,15 +163,15 @@ export const purchaseElectricity = async (req, res) => {
 
     const providerResult = await electricityService.purchase(payload);
 
+    console.log("🔌 purchaseElectricity response:", providerResult);
+
     // 🔹 Handle provider success
-    const isSuccess =
-      providerResult?.code === 101 ||
-      providerResult?.status?.toLowerCase() === "success";
+    const isSuccess = isProviderSuccess(providerResult);
 
     if (isSuccess) {
       transaction.status = "success";
       transaction.meta.providerResponse =
-        providerResult.description || providerResult.data;
+        providerResult?.description || providerResult?.data;
       await transaction.save();
 
       // 🔔 Emit success update
@@ -168,7 +190,8 @@ export const purchaseElectricity = async (req, res) => {
         message: "Electricity token purchased successfully",
         sandbox: isSandbox,
         transaction,
-        providerResponse: providerResult.description || providerResult.data,
+        providerResponse:
+          providerResult?.description || providerResult?.data || providerResult,
       });
     }
 
@@ -180,7 +203,7 @@ export const purchaseElectricity = async (req, res) => {
 
     transaction.status = "failed";
     transaction.meta.providerResponse =
-      providerResult.data || providerResult.description || providerResult;
+      providerResult?.data || providerResult?.description || providerResult;
     await transaction.save();
 
     // 🔔 Emit failed update
@@ -196,10 +219,10 @@ export const purchaseElectricity = async (req, res) => {
 
     return res.status(400).json({
       success: false,
-      message: providerResult.message || "Electricity purchase failed",
+      message: providerResult?.message || "Electricity purchase failed",
       transaction,
       providerResponse:
-        providerResult.data || providerResult.description || providerResult,
+        providerResult?.data || providerResult?.description || providerResult,
     });
   } catch (err) {
     console.error("⚡ purchaseElectricity error:", err);

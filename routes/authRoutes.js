@@ -13,6 +13,7 @@ import {
 } from "../controllers/authController.js";
 import authMiddleware from "../middleware/authMiddleware.js"; // ✅ add this
 import { getProfile } from "../controllers/authController.js";
+import { verifyTransactionPin} from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ router.post("/set-transaction-pin", authMiddleware, setTransactionPin);
 router.post("/send-pin-otp", authMiddleware, sendPinResetOtp); //for reset in app
 router.post("/verify-pin-otp", authMiddleware, verifyPinResetOtp); // verify reset otp
 router.post("/reset-transaction-pin", authMiddleware, resetTransactionPin); //finally reset the transacrtion pin
+router.post("/verify-transaction-pin", authMiddleware, verifyTransactionPin);
 router.get("/profile", authMiddleware, getProfile);
 
 export default router;

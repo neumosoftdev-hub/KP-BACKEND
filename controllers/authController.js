@@ -293,6 +293,8 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+
+
 /* === Set Transaction PIN === */
 export const setTransactionPin = async (req, res) => {
   try {
@@ -466,6 +468,34 @@ export const resetTransactionPin = async (req, res) => {
     return res.status(500).json({ message: "Server error resetting PIN" });
   }
 };
+
+/* === Verify Transaction PIN (for purchases, transfers, etc.) === */
+export const verifyTransactionPin = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { pin } = req.body;
+
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!pin) return res.status(400).json({ message: "PIN is required" });
+
+    const user = await User.findById(userId);
+    if (!user || !user.transactionPin)
+      return res.status(400).json({ message: "Transaction PIN not set" });
+
+    const isMatch = await bcrypt.compare(pin, user.transactionPin);
+    if (!isMatch)
+      return res.status(400).json({ success: false, message: "Invalid PIN" });
+
+    return res.status(200).json({ success: true, message: "PIN verified" });
+  } catch (err) {
+    console.error("❌ Verify Transaction PIN error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Server error verifying transaction PIN",
+    });
+  }
+};
+
 
 /* === Get Profile === */
 export const getProfile = async (req, res) => {
